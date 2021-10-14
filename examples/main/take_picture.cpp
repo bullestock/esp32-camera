@@ -6,7 +6,7 @@
 
 // 1. Board setup (Uncomment):
 // #define BOARD_WROVER_KIT
-// #define BOARD_ESP32CAM_AITHINKER
+#define BOARD_ESP32CAM_AITHINKER
 
 /**
  * 2. Kconfig setup
@@ -39,8 +39,6 @@
 #include "freertos/task.h"
 
 #include "esp_camera.h"
-
-#define BOARD_WROVER_KIT 1
 
 // WROVER-KIT PIN Map
 #ifdef BOARD_WROVER_KIT
@@ -115,10 +113,11 @@ static camera_config_t camera_config = {
     .ledc_channel = LEDC_CHANNEL_0,
 
     .pixel_format = PIXFORMAT_RGB565, //YUV422,GRAYSCALE,RGB565,JPEG
-    .frame_size = FRAMESIZE_QVGA,    //QQVGA-UXGA Do not use sizes above QVGA when not JPEG
+    .frame_size = FRAMESIZE_UXGA, //FRAMESIZE_QVGA,    //QQVGA-UXGA Do not use sizes above QVGA when not JPEG
 
     .jpeg_quality = 12, //0-63 lower number means higher quality
     .fb_count = 1,       //if more than one, i2s runs in continuous mode. Use only with JPEG
+    .fb_location = CAMERA_FB_IN_PSRAM,
     .grab_mode = CAMERA_GRAB_WHEN_EMPTY,
 };
 
@@ -135,6 +134,7 @@ static esp_err_t init_camera()
     return ESP_OK;
 }
 
+extern "C"
 void app_main()
 {
     if(ESP_OK != init_camera()) {
@@ -144,12 +144,12 @@ void app_main()
     while (1)
     {
         ESP_LOGI(TAG, "Taking picture...");
-        camera_fb_t *pic = esp_camera_fb_get();
+        auto pic = esp_camera_fb_get();
 
         // use pic->buf to access the image
         ESP_LOGI(TAG, "Picture taken! Its size was: %zu bytes", pic->len);
         esp_camera_fb_return(pic);
 
-        vTaskDelay(5000 / portTICK_RATE_MS);
+        vTaskDelay(50 / portTICK_RATE_MS);
     }
 }
